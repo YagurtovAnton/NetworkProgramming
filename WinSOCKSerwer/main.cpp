@@ -116,10 +116,13 @@ void main()
 		{
 			cout << "Error: recv() failed with code " << WSAGetLastError() << endl;
 			closesocket(ClientSocket);
-			closesocket(ListenSocket);
-			freeaddrinfo(result);
-			WSACleanup();
-			return;
+		
+			//return;
 		}
 	} while (iResult > 0);
+	closesocket(ListenSocket);
+	freeaddrinfo(result);
+	WSACleanup();
 }
+
+//VOID HandleClient(SOCKET ClientSocket, )

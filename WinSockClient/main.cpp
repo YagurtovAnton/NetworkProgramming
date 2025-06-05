@@ -31,12 +31,12 @@ void main()
 	hints.ai_protocol = IPPROTO_TCP;
 
 	//2
-	addrinfo* result=NULL;// выполн€ем разрешение имен
+	addrinfo* result = NULL;
 	iResult = getaddrinfo("127.0.0.1", DEFAULT_PORT, &hints, &result);
 	if (iResult != 0)
 	{
+		cout << "getaddrinfo() failed with code: " << iResult << endl;
 		WSACleanup();
-		cout << "Error: getaddrinfo failed: " << iResult << endl;
 		return;
 	}
 	//3 создаем сокет дл€ подключение к серверу
@@ -59,45 +59,41 @@ void main()
 		return;
 	}
 	//5 получение и отправка данных
-	CHAR send_buffer[DEFAULT_BUFFER_LENGTH] = "Hello Server, i am Client";
+	CHAR send_buffer[DEFAULT_BUFFER_LENGTH] = "Hello Server, I am Client";
 	CHAR recvbuffer[DEFAULT_BUFFER_LENGTH]{};
-
 	do
 	{
-	iResult = send(connect_socket, send_buffer, strlen(send_buffer),0);
-	if (iResult == SOCKET_ERROR)
-	{
-		cout << "Unable to connect to Server:" << endl;
-		closesocket(connect_socket);
-		freeaddrinfo(result);
-		WSACleanup();
-		return;
-	}
-	//iResult = shutdown(connect_socket, SD_SEND);
-	/*if (iResult == SOCKET_ERROR)
-	{
-		cout << "Shutdown Failed <<" << endl;
-		closesocket(connect_socket);
-		freeaddrinfo(result);
-		WSACleanup();
-		return;
-	}*/
-	// 6 Receive data
+		iResult = send(connect_socket, send_buffer, strlen(send_buffer), 0);
+		if (iResult == SOCKET_ERROR)
+		{
+			cout << "Send data failed with " << WSAGetLastError() << endl;
+			closesocket(connect_socket);
+			freeaddrinfo(result);
+			WSACleanup();
+			return;
+		}
+		cout << iResult << " Bytes sent" << endl;
+
+		//6) Receive data:
 		iResult = recv(connect_socket, recvbuffer, DEFAULT_BUFFER_LENGTH, 0);
-		if (iResult > 0)cout << "ByRec" << iResult << endl;
-		else if (result == 0)cout << "Connection closed" << endl;
-		else cout << "Receive failed with code: " << WSAGetLastError()<< endl;
+		if (iResult > 0)cout << "Bytes received: " << iResult << ", Message: " << recvbuffer << endl;
+		else if (iResult == 0)cout << "Connection closed" << endl;
+		else cout << "Receive failed with code: " << WSAGetLastError() << endl;
+		
 		ZeroMemory(send_buffer, sizeof(send_buffer));
 		ZeroMemory(recvbuffer, sizeof(recvbuffer));
 		cout << "¬ведите сообщение: "; cin.getline(send_buffer, DEFAULT_BUFFER_LENGTH);
-	} while (iResult > 0);
+		SetConsoleCP(1251);
+		cin.getline(send_buffer, DEFAULT_BUFFER_LENGTH);
+		SetConsoleCP(866);
+		//for (int i = 0; send_buffer[i]; i++)send_buffer[i] = tolower(send_buffer[i]);
+	} while (iResult > 0 && strcat(send_buffer,"exit"));
 
 	//7) Disconnect:
 	iResult = shutdown(connect_socket, SD_SEND);
 	closesocket(connect_socket);
 	freeaddrinfo(result);
 	WSACleanup();
-	return;
-
+	
 	system("PAUSE");
 } 
